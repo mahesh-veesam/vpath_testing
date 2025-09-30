@@ -21,7 +21,7 @@ router.get('/google/callback',
     }
     console.log(userData)
     const encodedUser = encodeURIComponent(JSON.stringify(userData))
-    res.redirect(`https://vpath-testing?user=${encodedUser}`);
+    res.redirect(`https://vpath-testing.netlify.app?user=${encodedUser}`);
   }
 );
 
