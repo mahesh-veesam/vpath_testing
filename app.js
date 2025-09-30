@@ -59,7 +59,7 @@ app.use(passport.session())
 
 const allowedOrigins = [
   "http://localhost:5173",
-  "https://vpath-testing.netlify.app/",
+  "https://vpath-testing.netlify.app",
   "http://192.168.1.35:5173"
 ];
 
