@@ -107,13 +107,13 @@ const uploadRoute = wrapAsync(async (req, res, next) => {
     console.log("✅ Temp PDF deleted");
 
     // Step 6: Delete uploaded local images
-    // console.log("➡️ Cleaning up local images...");
-    // for (let file of req.files) {
-    //     fs.unlink(file.path, (err) => {
-    //         if (err) console.error(`❌ Failed to delete ${file.path}`, err);
-    //         else console.log(`✅ Deleted temp local image ${file.path}`);
-    //     });
-    // }
+    console.log("➡️ Cleaning up local images...");
+    for (let file of req.files) {
+        fs.unlink(file.path, (err) => {
+            if (err) console.error(`❌ Failed to delete ${file.path}`, err);
+            else console.log(`✅ Deleted temp local image ${file.path}`);
+        });
+    }
 
     // Step 7: Save only PDF info inside course
     console.log("➡️ Preparing course object for DB...");

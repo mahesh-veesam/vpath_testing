@@ -32,16 +32,22 @@ store.on("error",()=>{
   console.log("Error in mongo section")
 })
 
-const sessionOptions = {   
-  store,     
-  secret : "mysecretcode",
-  resave : false,
-  saveUninitialized : false,
-  cookie : {
-      expires : Date.now() + 7 * 24 * 60 * 60 * 1000, 
-      maxAge : 7 * 24 * 60 * 60 * 1000, 
-      httpOnly : true
+const sessionOptions = {
+  store,
+  secret: "mysecretcode",
+  resave: false,
+  saveUninitialized: false,
+  cookie: {
+    expires: Date.now() + 7 * 24 * 60 * 60 * 1000,
+    maxAge: 7 * 24 * 60 * 60 * 1000,
+    httpOnly: true,
+    secure: process.env.NODE_ENV === "production", // only HTTPS in prod
+    sameSite: "none" 
   }
+}
+
+if (process.env.NODE_ENV === "production") {
+  app.set("trust proxy", 1); // Required on Render behind proxy
 }
 
 app.use(express.urlencoded({extended : true}))
@@ -53,7 +59,7 @@ app.use(passport.session())
 
 const allowedOrigins = [
   "http://localhost:5173",
-  "https://vpath-testing.netlify.app",
+  "https://vpath-testing.netlify.app/",
   "http://192.168.1.35:5173"
 ];
 

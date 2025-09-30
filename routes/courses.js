@@ -39,6 +39,12 @@ const upload = multer({dest : "uploads/"})
 router.get('/', homeRoute);
 
 router.get('/:code',wrapAsync(async(req,res)=>{
+  if(req.user){
+    console.log(req.user.name)
+  }
+  else{
+    console.log("error in req.user")
+  }
   let {code} = req.params
   let courses = await Course.find({code : code}).populate("uploadedBy") 
   if (!courses){
