@@ -24,86 +24,90 @@ const homeRoute = wrapAsync(async(req, res) => {
     res.status(200).json(courses)
 })
 
-const uploadRoute = wrapAsync(async (req, res) => {
+const uploadRoute = wrapAsync(async (req, res, next) => {
+    console.log("➡️ Request received");
 
-    console.log(req.files)
+    // Step 1: Check files received
+    console.log("FILES:", req.files?.map(f => f.originalname) || "No files");
+    console.log("BODY:", req.body);
 
-    // Check for no files uploaded or file size exceeded
     if (!req.files || req.files.length === 0) {
         const error = new Error("No files uploaded.");
         error.status = 400;
-        return next(error);  // Pass the error to the error handling middleware
+        return next(error);
     }
 
     let course = new Course(req.body);
 
-    // Define the final upload folder for processed files
-    const uploadFolderPath = path.join(__dirname, 'uploads');
-    if (!fs.existsSync(uploadFolderPath)) {
-        fs.mkdirSync(uploadFolderPath, { recursive: true });
-    }
+    // Step 2: Generate PDF
+    const pdfPath = path.join(__dirname, "../temp", `${course._id}.pdf`);
+    console.log("📂 Temp PDF path:", pdfPath);
 
-    const tempFolderPath = path.join(__dirname, '../temp');
-
-    // Step 1: Check if temp folder exists; if not, create it
-    if (!fs.existsSync(tempFolderPath)) {
-        fs.mkdirSync(tempFolderPath);
-    }
-
-    // Step 2: Generate the PDF directly from local uploaded images
-    const pdfPath = path.join(tempFolderPath, `${course._id}.pdf`);
     const doc = new PDFDocument({ autoFirstPage: false });
     const writeStream = fs.createWriteStream(pdfPath);
-
     doc.pipe(writeStream);
 
     for (let file of req.files) {
-        const imagePath = file.path; // local path
-
-        const image = doc.openImage(imagePath);
-        doc.addPage({ size: [image.width, image.height] });
-        doc.image(image, 0, 0);
+        console.log("🖼️ Adding file to PDF:", file.path);
+        try {
+            const size = sizeOf(file.path); // using image-size
+            doc.addPage({ size: [size.width, size.height] });
+            doc.image(file.path, 0, 0);
+        } catch (err) {
+            console.error("❌ Error adding image:", err);
+        }
     }
 
     doc.end();
 
-    // Step 3: Wait until PDF is fully written
     await new Promise((resolve, reject) => {
-        writeStream.on('finish', resolve);
-        writeStream.on('error', reject);
-    });
-
-    // Step 4: Upload the final PDF to Cloudinary
-    const pdfUpload = await cloudinary.uploader.upload(pdfPath, { 
-        resource_type: 'raw',
-        public_id: `courses/${course._id}`,
-        format: 'pdf'
-    });
-
-    // Step 5: Delete the temp PDF from local server
-    fs.unlinkSync(pdfPath);
-
-    // Step 6: Also delete the uploaded local images (optional cleanup)
-    for (let file of req.files) {
-        fs.unlink(file.path, (err) => {
-            if (err) console.error(`Failed to delete ${file.path}`, err);
-            else console.log(`Deleted temp local image ${file.path}`);
+        writeStream.on("finish", () => {
+            console.log("✅ PDF created successfully");
+            resolve();
         });
+        writeStream.on("error", reject);
+    });
+
+    // Step 3: Upload to Cloudinary
+    let pdfUpload;
+    try {
+        console.log("⬆️ Uploading PDF to Cloudinary...");
+        pdfUpload = await cloudinary.uploader.upload(pdfPath, {
+            resource_type: "raw",
+            public_id: `courses/${course._id}`,
+            format: "pdf",
+        });
+        console.log("✅ Cloudinary upload successful:", pdfUpload.secure_url);
+    } catch (err) {
+        console.error("❌ Cloudinary upload failed:", err);
+        return next(err);
     }
 
-    // Step 7: Save only PDF info inside course
+    // Step 4: Prepare course before saving
     course.image = [];
     course.pdf = {
         url: pdfUpload.secure_url,
-        filename: pdfUpload.public_id
+        filename: pdfUpload.public_id,
     };
-
     course.uploadedBy = req.user._id;
 
-    await course.save();
+    console.log("📦 Course before saving:", course);
 
-    res.send('OK');
-})
+    // Step 5: Save in DB
+    try {
+        await course.save();
+        console.log("✅ Course saved in DB:", course._id);
+    } catch (err) {
+        console.error("❌ DB save error:", err);
+        return next(err);
+    }
+
+    res.json({
+        message: "Upload successful",
+        pdfUrl: course.pdf.url,
+        courseId: course._id,
+    });
+});
 
 const updateEdit = wrapAsync(async (req, res) => {
   const { id } = req.params;
