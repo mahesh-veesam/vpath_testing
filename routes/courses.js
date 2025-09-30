@@ -48,7 +48,7 @@ router.get('/:code',wrapAsync(async(req,res)=>{
 }))
 
 //uplading and generating pdf post route    ||     new -> upload
-router.post("/upload",isLoggedIn, upload.array('images',5), uploadRoute)
+router.post("/upload", isLoggedIn, upload.array('images',5), uploadRoute)
 
 //update edit route
 router.patch("/update/:id",updateEdit)
