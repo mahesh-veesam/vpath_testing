@@ -48,14 +48,11 @@ const uploadRoute = wrapAsync(async (req, res, next) => {
     doc.pipe(writeStream);
 
     for (let file of req.files) {
-        console.log("🖼️ Adding file to PDF:", file.path);
-        try {
-            const size = sizeOf(file.path); // using image-size
-            doc.addPage({ size: [size.width, size.height] });
-            doc.image(file.path, 0, 0);
-        } catch (err) {
-            console.error("❌ Error adding image:", err);
-        }
+        const imagePath = file.path; // local path
+
+        const image = doc.openImage(imagePath);
+        doc.addPage({ size: [image.width, image.height] });
+        doc.image(image, 0, 0);
     }
 
     doc.end();
@@ -81,6 +78,17 @@ const uploadRoute = wrapAsync(async (req, res, next) => {
     } catch (err) {
         console.error("❌ Cloudinary upload failed:", err);
         return next(err);
+    }
+
+        // Step 5: Delete the temp PDF from local server
+    fs.unlinkSync(pdfPath);
+
+    // Step 6: Also delete the uploaded local images (optional cleanup)
+    for (let file of req.files) {
+        fs.unlink(file.path, (err) => {
+            if (err) console.error(`Failed to delete ${file.path}`, err);
+            else console.log(`Deleted temp image ${file.path}`);
+        });
     }
 
     // Step 4: Prepare course before saving
