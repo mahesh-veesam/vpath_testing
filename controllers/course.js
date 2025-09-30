@@ -9,7 +9,7 @@ const User = require("../models/user.js")
 const router = express.Router()
 const wrapAsync = require("../utils/wrapAsync.js")
 const ExpressError = require("../utils/ExpressError.js")
-const {isLoggedIn} = require("../middleware.js")
+const {isLoggedIn} = require("../isLoggedIn.js")
 
 const homeRoute = wrapAsync(async(req, res) => {
   if(req.user) {console.log(req.user.name) }
