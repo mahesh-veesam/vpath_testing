@@ -13,6 +13,7 @@ const {isLoggedIn} = require("../isLoggedIn.js")
 
 const homeRoute = wrapAsync(async(req, res) => {
   if(req.user) {console.log(req.user.name) }
+  console.log("reached home route")
     let courses = await Course.aggregate([
       { 
         $group:{
