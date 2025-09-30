@@ -26,6 +26,7 @@ const homeRoute = wrapAsync(async(req, res) => {
 
 const uploadRoute = wrapAsync(async (req, res, next) => {
     console.log("🚀 Upload route hit");
+    console.log(req.user._id)
 
     console.log("📥 Files received:", req.files);
     console.log("📥 Body received:", req.body);
