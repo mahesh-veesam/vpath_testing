@@ -11,7 +11,7 @@ router.get('/google',
 );
 
 router.get('/google/callback', 
-  passport.authenticate('google', { failureRedirect: 'https://vpath_testing.netlify.app/home' }),
+  passport.authenticate('google', { failureRedirect: 'https://vpath-testing.netlify.app/home' }),
   async(req, res) => {
     const userData = {  
       name  : req.user.displayName,
@@ -21,7 +21,7 @@ router.get('/google/callback',
     }
     console.log(userData)
     const encodedUser = encodeURIComponent(JSON.stringify(userData))
-    res.redirect(`https://vpath_testing?user=${encodedUser}`);
+    res.redirect(`https://vpath-testing?user=${encodedUser}`);
   }
 );
 

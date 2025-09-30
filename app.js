@@ -53,7 +53,7 @@ app.use(passport.session())
 
 const allowedOrigins = [
   "http://localhost:5173",
-  "https://vpath_testing.netlify.app",
+  "https://vpath-testing.netlify.app",
   "http://192.168.1.35:5173"
 ];
 
@@ -74,7 +74,7 @@ app.use(express.json())
 passport.use(new GoogleStrategy({
   clientID: process.env.GOOGLE_CLIENT_ID,
   clientSecret: process.env.GOOGLE_CLIENT_SECRET,
-  callbackURL: "https://vpath_testing.onrender.com/auth/google/callback",
+  callbackURL: "https://vpath-testing.onrender.com/auth/google/callback",
   scope : ["profile","email"],
 },
 
