@@ -40,9 +40,13 @@ const uploadRoute = wrapAsync(async (req, res, next) => {
     let course = new Course(req.body);
 
     // Step 2: Generate PDF
-    const pdfPath = path.join(__dirname, "../temp", `${course._id}.pdf`);
-    console.log("📂 Temp PDF path:", pdfPath);
-
+    try{
+      const pdfPath = path.join(__dirname, "../temp", `${course._id}.pdf`);
+      console.log("📂 Temp PDF path:", pdfPath);
+    }catch(e){
+      console.log(e)
+    }
+   
     const doc = new PDFDocument({ autoFirstPage: false });
     const writeStream = fs.createWriteStream(pdfPath);
     doc.pipe(writeStream);
