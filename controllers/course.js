@@ -11,19 +11,33 @@ const wrapAsync = require("../utils/wrapAsync.js")
 const ExpressError = require("../utils/ExpressError.js")
 const {isLoggedIn} = require("../isLoggedIn.js")
 
-const homeRoute = wrapAsync(async(req, res) => {
-  if(req.user) {console.log(req.user.name) }
-  console.log("reached home route")
-    let courses = await Course.aggregate([
-      { 
-        $group:{
-          _id: "$code",
-          title : { $first : "$title"}
-        }
+const homeRoute = wrapAsync(async (req, res) => {
+  if (req.user) {
+    console.log(req.user.name);
+  }
+
+  console.log("reached home route");
+
+  let courses = await Course.aggregate([
+    // {$sort : {uploadedAt:-1}},
+    {
+      $group: {
+        _id: "$code",
+        title: { $first: "$title" },
+        uploadedAt : { $first: "$uploadedAt" }
       }
-    ])
-    res.status(200).json(courses)
-})
+    },
+    {
+      $project: {
+        code: "$_id",           // rename _id to code
+        title: 1,
+        uploadedAt : 1,
+        _id: 0                 
+      }
+    }
+  ]);
+  res.status(200).json(courses);
+});
 
 const uploadRoute = wrapAsync(async (req, res, next) => {
     console.log("🚀 Upload route hit");
